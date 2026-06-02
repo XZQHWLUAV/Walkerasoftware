@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>华科尔飞控相关软件 - 启航未来无人机工厂资料库</title>
+    <style>
+        /* ==================== 全局样式重置 ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ==================== CSS变量 - 蓝色系配色方案 ==================== */
+        :root {
+            --primary-color: #165DFF;          /* 主蓝色 */
+            --primary-dark: #0E42D2;           /* 深蓝 */
+            --primary-light: #4080FF;          /* 浅蓝 */
+            --secondary-color: #69B1FF;        /* 辅助蓝 */
+            --bg-color: #F5F7FA;               /* 背景色 */
+            --bg-dark: #E8F3FF;                /* 浅蓝色背景 */
+            --text-primary: #1D2129;           /* 主文字色 */
+            --text-secondary: #4E5969;         /* 次要文字色 */
+            --text-light: #86909C;             /* 浅色文字 */
+            --white: #FFFFFF;                  /* 白色 */
+            --border-color: #E5E6EB;           /* 边框色 */
+            --shadow: 0 4px 16px rgba(22, 93, 255, 0.15);
+            --shadow-hover: 0 8px 24px rgba(22, 93, 255, 0.25);
+        }
+
+        /* ==================== 无人机SVG背景图案 ==================== */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            /* 使用内嵌SVG作为背景图案 */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23165DFF' fill-opacity='0.05'%3E%3Cpath d='M30 0L30 12L36 6L30 0ZM30 60L30 48L36 54L30 60ZM0 30L12 30L6 36L0 30ZM60 30L48 30L54 36L60 30ZM10.5 10.5L19 19L14.5 23.5L10.5 10.5ZM49.5 49.5L41 41L45.5 36.5L49.5 49.5ZM10.5 49.5L19 41L14.5 36.5L10.5 49.5ZM49.5 10.5L41 19L45.5 23.5L49.5 10.5Z'/%3E%3Cpath d='M30 20C34.4183 20 38 23.5817 38 28C38 32.4183 34.4183 36 30 36C25.5817 36 22 32.4183 22 28C22 23.5817 25.5817 20 30 20Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            min-height: 100vh;
+        }
+
+        /* ==================== 顶部导航容器 ==================== */
+        .header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        /* ==================== 第一行 - 大标题区域 ==================== */
+        .header-title {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 10px 15px;
+            text-align: center;
+        }
+
+        .header-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ==================== 滚动文字轨道 ==================== */
+        .marquee-container {
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary-color), var(--primary-light));
+            padding: 5px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .marquee-track {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee-text {
+            font-size: 14px;
+            color: var(--white);
+            font-weight: 500;
+            padding: 0 100%;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        /* ==================== 第二行 - 导航菜单栏 ==================== */
+        .nav-bar {
+            background-color: var(--white);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* 主菜单列表 */
+        .main-menu {
+            display: flex;
+            list-style: none;
+            position: relative;
+        }
+
+        /* 主菜单项 */
+        .menu-item {
+            position: relative;
+        }
+
+        .menu-item > a {
+            display: block;
+            padding: 10px 28px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .menu-item > a:hover {
+            color: var(--primary-color);
+            background-color: var(--bg-dark);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* ==================== 纯CSS下拉菜单 ==================== */
+        .submenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 240px;
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            border-radius: 0 0 8px 8px;
+            list-style: none;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 999;
+            overflow: hidden;
+        }
+
+        /* 关键：悬停时显示下拉菜单 */
+        .menu-item:hover .submenu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* 子菜单项样式 */
+        .submenu li {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .submenu li:last-child {
+            border-bottom: none;
+        }
+
+        .submenu li a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .submenu li a:hover {
+            background-color: var(--bg-dark);
+            color: var(--primary-color);
+            padding-left: 28px;
+        }
+
+        /* 敬请期待样式 */
+        .coming-soon {
+            padding: 16px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* ==================== 主体内容区域 ==================== */
+        .main-content {
+            margin-top: 115px;
+            padding: 30px 20px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 页面标题 */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: var(--white);
+            padding: 35px 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .page-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            font-size: 15px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* 下载区域 */
+        .download-section {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--bg-dark);
+        }
+
+        .download-list {
+            list-style: none;
+        }
+
+        .download-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            background: var(--bg-color);
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .download-item:hover {
+            background: var(--bg-dark);
+            transform: translateX(3px);
+            box-shadow: var(--shadow);
+        }
+
+        .download-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .download-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 22px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 22px;
+            background: var(--white);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .link-btn:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* 返回首页按钮 */
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 32px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* ==================== 页脚 ==================== */
+        .footer {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            color: var(--white);
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-main {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            opacity: 0.95;
+        }
+
+        .footer-phone {
+            font-size: 14px;
+            margin-bottom: 12px;
+            opacity: 0.85;
+        }
+
+        .footer .copyright {
+            font-size: 12px;
+            opacity: 0.6;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* ==================== 响应式设计 - 移动端适配 ==================== */
+        @media (max-width: 768px) {
+            .header-title h1 {
+                font-size: 20px;
+                letter-spacing: 1px;
+            }
+
+            .header-title {
+                padding: 8px 12px;
+            }
+
+            .marquee-text {
+                font-size: 12px;
+            }
+
+            .marquee-container {
+                padding: 4px 0;
+            }
+
+            .nav-container {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding: 0 10px;
+            }
+
+            .menu-item > a {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .main-content {
+                margin-top: 100px;
+                padding: 20px 15px;
+            }
+
+            .page-header h2 {
+                font-size: 22px;
+            }
+
+            .download-section {
+                padding: 24px 20px;
+            }
+
+            .download-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .download-btn, .link-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .footer-main {
+                font-size: 15px;
+            }
+
+            .footer-phone {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title h1 {
+                font-size: 17px;
+                letter-spacing: 1px;
+            }
+
+            .menu-item > a {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .main-content {
+                margin-top: 90px;
+            }
+
+            .page-header h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== 顶部固定导航区域 ==================== -->
+    <header class="header-container">
+        <!-- 第一行：大标题 -->
+        <div class="header-title">
+            <h1>启航未来无人机工厂资料库</h1>
+        </div>
+
+        <!-- 滚动文字轨道 -->
+        <div class="marquee-container">
+            <div class="marquee-track">
+                <span class="marquee-text">欢迎访问启航未来无人机资料库，徐州启航未来航空航天科技有限公司竭诚为您服务！</span>
+            </div>
+        </div>
+
+        <!-- 第二行：导航菜单 -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <ul class="main-menu">
+                    <!-- 菜单一：软件下载 -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)">软件下载</a>
+                        <ul class="submenu">
+                            <li><a href="walkera_software.html">华科尔飞控相关软件</a></li>
+                            <li><a href="在此处粘贴跳转链接">翎客飞控软件</a></li>
+                            <li><a href="在此处粘贴跳转链接">凌动飞控相关软件</a></li>
+                            <li><a href="在此处粘贴跳转链接">其他飞控相关软件</a></li>
+                            <li><a href="在此处粘贴跳转链接">3DR数传软件</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- 菜单二：视频教学 -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)">视频教学</a>
+                        <ul class="submenu">
+                            <li><a href="在此处粘贴跳转链接">整机安装调试及维修</a></li>
+                            <li><a href="在此处粘贴跳转链接">地面站飞控相关操作视频</a></li>
+                            <li><a href="在此处粘贴跳转链接">电池使用教程</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- 菜单三：资料下载 -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)">资料下载</a>
+                        <ul class="submenu">
+                            <li><a href="在此处粘贴跳转链接">参数及使用说明</a></li>
+                            <li><a href="在此处粘贴跳转链接">常见问题排查</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- 菜单四：其他链接 -->
+                    <li class="menu-item">
+                        <a href="javascript:void(0)">其他链接</a>
+                        <ul class="submenu">
+                            <li class="coming-soon">敬请期待</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ==================== 主体内容区域 ==================== -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <section class="page-header">
+            <h2>华科尔飞控相关软件</h2>
+            <p>提供华科尔系列飞控的官方软件、驱动程序及工具下载</p>
+        </section>
+
+        <!-- 软件下载区域 -->
+        <section class="download-section">
+            <h3 class="section-title">软件下载</h3>
+            <ul class="download-list">
+                <li class="download-item">
+                    <div class="download-name">华科尔地面站及驱动</div>
+                    <a href="https://github.com/XZQHWLUAV/download-center/releases/download/%E5%8D%8E%E7%A7%91%E5%B0%94%E5%9C%B0%E9%9D%A2%E7%AB%99%E5%8F%8A%E9%A9%B1%E5%8A%A8/Walkera.Ground.Station.and.Drive.zip" class="download-btn" target="_blank">下载</a>
+                </li>
+                <li class="download-item">
+                    <div class="download-name">华科尔固件升级工具</div>
+                    <a href="https://github.com/XZQHWLUAV/download-center/releases/download/%E5%8D%8E%E7%A7%91%E5%B0%94%E5%9B%BA%E4%BB%B6%E5%8D%87%E7%BA%A7%E5%B7%A5%E5%85%B7/Walkera.Firmware.Upgrade.Tool.zip" class="download-btn" target="_blank">下载</a>
+                </li>
+                <li class="download-item">
+                    <div class="download-name">华科尔F8飞控地面站参数示例</div>
+                    <a href="https://github.com/user-attachments/files/28293439/F8.zip" class="download-btn" target="_blank">下载</a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- 官方链接区域 -->
+        <section class="download-section">
+            <h3 class="section-title">官方链接</h3>
+            <ul class="download-list">
+                <li class="download-item">
+                    <div class="download-name">华科尔地面站下载页面（不含驱动）</div>
+                    <a href="https://fly.walkera.cn/des/" class="link-btn" target="_blank">访问</a>
+                </li>
+                <li class="download-item">
+                    <div class="download-name">华科尔飞控固件下载页面</div>
+                    <a href="https://fly.walkera.cn/firmware/#20" class="link-btn" target="_blank">访问</a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- 返回首页按钮 - 当前标签页跳转 -->
+        <div class="back-home">
+            <a href="https://xzqhwluav.github.io/download-center/" class="back-btn">返回首页</a>
+        </div>
+    </main>
+
+    <!-- ==================== 页脚 ==================== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-main">启航未来无人机工厂 | 专业的无人机源头工厂</p>
+            <p class="footer-phone">售后联系电话：18151889626</p>
+            <p class="copyright">© 2026 启航未来 QHWL. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- ==================== JavaScript 交互增强 ==================== -->
+    <script>
+        // 平滑滚动处理
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header-container');
+            if (window.scrollY > 50) {
+                header.style.boxShadow = '0 8px 24px rgba(22, 93, 255, 0.2)';
+            } else {
+                header.style.boxShadow = '0 4px 16px rgba(22, 93, 255, 0.15)';
+            }
+        });
+
+        // 移动端触摸支持
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('touchstart', function(e) {
+                const submenu = this.querySelector('.submenu');
+                if (submenu) {
+                    const isVisible = submenu.style.opacity === '1';
+                    document.querySelectorAll('.submenu').forEach(sm => {
+                        sm.style.opacity = '0';
+                        sm.style.visibility = 'hidden';
+                        sm.style.transform = 'translateY(-10px)';
+                    });
+                    if (!isVisible) {
+                        submenu.style.opacity = '1';
+                        submenu.style.visibility = 'visible';
+                        submenu.style.transform = 'translateY(0)';
+                        e.preventDefault();
+                    }
+                }
+            });
+        });
+
+        // 点击页面其他区域关闭下拉菜单
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.menu-item')) {
+                document.querySelectorAll('.submenu').forEach(submenu => {
+                    submenu.style.opacity = '';
+                    submenu.style.visibility = '';
+                    submenu.style.transform = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
